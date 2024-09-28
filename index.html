@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC20 剪刀税代币创建器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/solc/0.8.17/solc.min.js"></script>
+    <style>
+        body { padding-top: 60px; }
+        .token-list { max-height: 300px; overflow-y: auto; }
+        #statusMessage { display: none; }
+        .code-input { font-family: monospace; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">ERC20 剪刀税代币创建器</a>
+            <button id="connectWallet" class="btn btn-outline-primary">连接钱包</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="statusMessage" class="alert" role="alert"></div>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>编写和编译 Solidity 合约</h2>
+                <form id="compileContractForm">
+                    <div class="mb-3">
+                        <label for="solidityCode" class="form-label">Solidity 代码</label>
+                        <textarea class="form-control code-input" id="solidityCode" rows="10" required=""></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">编译合约</button>
+                </form>
+
+                <h2 class="mt-4">合约 ABI 和 Bytecode</h2>
+                <form id="contractSetupForm">
+                    <div class="mb-3">
+                        <label for="contractABI" class="form-label">合约 ABI (JSON 格式)</label>
+                        <textarea class="form-control code-input" id="contractABI" rows="5" required=""></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contractBytecode" class="form-label">合约 Bytecode</label>
+                        <textarea class="form-control code-input" id="contractBytecode" rows="3" required=""></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">设置合约信息</button>
+                </form>
+
+                <h2 class="mt-4">创建新剪刀税代币</h2>
+                <form id="createTokenForm">
+                    <div class="mb-3">
+                        <label for="tokenName" class="form-label">代币名称</label>
+                        <input type="text" class="form-control" id="tokenName" required="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tokenSymbol" class="form-label">代币符号</label>
+                        <input type="text" class="form-control" id="tokenSymbol" required="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="initialSupply" class="form-label">初始供应量</label>
+                        <input type="number" class="form-control" id="initialSupply" required="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="routerAddress" class="form-label">UniswapV2路由器地址</label>
+                        <input type="text" class="form-control" id="routerAddress" required="">
+                    </div>
+                    <button type="submit" class="btn btn-primary">创建代币</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>您的剪刀税代币</h2>
+                <div id="tokenList" class="list-group token-list mb-3">
+                    <!-- 代币列表将在这里填充 -->
+                </div>
+                
+                <h3>代币交易</h3>
+                <form id="tradeTokenForm">
+                    <div class="mb-3">
+                        <label for="tokenAddress" class="form-label">代币合约地址</label>
+                        <input type="text" class="form-control" id="tokenAddress" required="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tradeAmount" class="form-label">交易数量</label>
+                        <input type="number" class="form-control" id="tradeAmount" required="">
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipientAddress" class="form-label">接收地址</label>
+                        <input type="text" class="form-control" id="recipientAddress" required="">
+                    </div>
+                    <button type="submit" class="btn btn-primary">交易代币</button>
+                </form>
+
+                <h3 class="mt-4">启用交易</h3>
+                <form id="enableTradingForm">
+                    <div class="mb-3">
+                        <label for="enableTradingAddress" class="form-label">代币合约地址</label>
+                        <input type="text" class="form-control" id="enableTradingAddress" required="">
+                    </div>
+                    <button type="submit" class="btn btn-warning">启用交易</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">ERC20 剪刀税代币创建器 © 2024</span>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+
+
+</body></html>
